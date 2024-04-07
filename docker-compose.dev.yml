@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  #mongo:
+  #  image: mongo
+  #  ports:
+  #    - 3456:27017
+  #  environment:
+  #    MONGO_INITDB_ROOT_USERNAME: root
+  #    MONGO_INITDB_ROOT_PASSWORD: example
+  #    MONGO_INITDB_DATABASE: the_database
+  #  volumes:
+  #    - ./mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+  #    - ./volumes/mongo:/data/db
+  n1d_redis:
+    container_name: n1d_redis
+    networks:
+      - n1_network
+    image: redis:7.2.4
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 60 1 --loglevel warning --requirepass redispass123
+    volumes:
+      - ./volumes/redis:/data
+
+  n1d_app:
+    container_name: n1d_app
+    networks:
+      - n1_network
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    environment:
+      - PORT=3000
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+
+  debug-helper:
+    networks:
+      - n1_network
+    image: busybox
+
+networks:
+  n1_network: {}
+
+#docker-compose -f docker-compose.dev.yml up -d --build
+#docker-compose -f docker-compose.dev.yml down
